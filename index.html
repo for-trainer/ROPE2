@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Канат Знаний — Битва Таблицы Умножения на 5-9</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <!-- Google Fonts: Comfortaa & Inter for friendly educational typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@600;700;800&family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      overflow-x: hidden;
+    }
+    .font-display {
+      font-family: 'Comfortaa', cursive, sans-serif;
+    }
+    
+    /* Pulled rope animations & wobble */
+    @keyframes ropePullLeft {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(-2deg) scale(1.02); }
+      100% { transform: rotate(0deg) scale(1); }
+    }
+    @keyframes ropePullRight {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(2deg) scale(1.02); }
+      100% { transform: rotate(0deg) scale(1); }
+    }
+    .rope-strain-left {
+      animation: ropePullLeft 0.35s ease-in-out;
+    }
+    .rope-strain-right {
+      animation: ropePullRight 0.35s ease-in-out;
+    }
+
+    /* Dust puff animation */
+    @keyframes dustPuff {
+      0% { opacity: 0.9; transform: scale(0.6) translateY(0); }
+      100% { opacity: 0; transform: scale(1.8) translateY(-25px); }
+    }
+    .dust-effect {
+      position: absolute;
+      animation: dustPuff 0.5s ease-out forwards;
+      pointer-events: none;
+    }
+
+    /* Pulse effect for correct answer */
+    @keyframes answerPop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+    .btn-pop {
+      animation: answerPop 0.25s ease-out;
+    }
+
+    /* Shake effect for wrong answer */
+    @keyframes shakeHoriz {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .btn-shake {
+      animation: shakeHoriz 0.35s ease-in-out;
+    }
+
+    /* Character idle breathing */
+    @keyframes characterBreathe {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-4px) rotate(0.8deg); }
+    }
+    .idle-breathe {
+      animation: characterBreathe 2s ease-in-out infinite;
+    }
+
+    /* Glow highlights */
+    .glow-blue {
+      box-shadow: 0 0 25px rgba(59, 130, 246, 0.45);
+    }
+    .glow-red {
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.45);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-sky-950 to-indigo-950 min-h-screen text-slate-100 flex flex-col justify-between selection:bg-amber-400 selection:text-slate-900">
+
+  <!-- ================= TOP NAVIGATION / BAR ================= -->
+  <header class="w-full px-4 py-3 bg-slate-900/80 backdrop-blur-md border-b border-sky-800/40 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Brand & Mode Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-400 flex items-center justify-center shadow-lg shadow-amber-500/20 text-2xl font-black">
+          🪢
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-display font-extrabold text-lg sm:text-xl text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-orange-300 to-yellow-200">
+              Канат Знаний
+            </h1>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+              × 5, 6, 7, 8, 9
+            </span>
+          </div>
+          <p class="text-xs text-sky-300/80 hidden sm:block">
+            Командный тренажер таблицы умножения
+          </p>
+        </div>
+      </div>
+
+      <!-- Center: Match Status / Target Score -->
+      <div class="flex items-center gap-4 bg-slate-800/80 border border-slate-700/60 px-4 py-1.5 rounded-2xl">
+        <div class="text-center">
+          <span class="text-[10px] uppercase tracking-wider font-bold text-sky-400 block">Победа при перевесе</span>
+          <span id="targetStepsDisplay" class="font-display font-black text-amber-400 text-sm sm:text-base">5 шагов</span>
+        </div>
+        <div class="h-6 w-px bg-slate-700"></div>
+        <div class="text-center">
+          <span class="text-[10px] uppercase tracking-wider font-bold text-slate-400 block">Режим игры</span>
+          <span id="currentModeDisplay" class="font-bold text-xs sm:text-sm text-slate-200">2 Игрока</span>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flex items-center gap-2">
+        <!-- Sound toggle -->
+        <button id="soundToggleBtn" title="Вкл/Выкл Звук" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-300 transition-all hover:scale-105 active:scale-95 cursor-pointer">
+          <span id="soundIcon" class="text-lg">🔊</span>
+        </button>
+
+        <!-- Cheat Sheet / Help -->
+        <button id="cheatsheetBtn" title="Таблица умножения (Шпаргалка)" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sky-900/60 hover:bg-sky-800/80 border border-sky-700/60 text-sky-200 text-xs sm:text-sm font-bold transition-all hover:scale-105 active:scale-95 cursor-pointer">
+          <span>📖</span>
+          <span class="hidden md:inline">Таблица 5-9</span>
+        </button>
+
+        <!-- Settings modal trigger -->
+        <button id="settingsBtn" title="Настройки матча" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 text-xs sm:text-sm font-extrabold shadow-md shadow-amber-500/20 transition-all hover:scale-105 active:scale-95 cursor-pointer">
+          <span>⚙️</span>
+          <span>Настройки</span>
+        </button>
+
+        <!-- Restart Match -->
+        <button id="restartBtn" title="Начать раунд заново" class="p-2.5 rounded-xl bg-slate-800 hover:bg-rose-900/40 border border-slate-700 hover:border-rose-500/50 text-slate-300 hover:text-rose-300 transition-all hover:scale-105 active:scale-95 cursor-pointer">
+          🔄
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= MAIN ARENA AREA ================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 flex flex-col justify-between gap-4">
+
+    <!-- 1. TUG-OF-WAR ARENA (FIELD + CHARACTERS + ROPE + STATUS METER) -->
+    <div class="relative bg-gradient-to-b from-slate-900/90 to-slate-950/90 rounded-3xl border border-sky-900/40 shadow-2xl overflow-hidden p-4 sm:p-6 backdrop-blur-xl">
+      
+      <!-- Top Arena Header: Score, Team badges, Momentum -->
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <!-- Team 1 Badge -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-blue-600/30 border-2 border-blue-500 flex items-center justify-center text-xl sm:text-2xl shadow-lg shadow-blue-500/30">
+            🐻
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span id="team1NameDisplay" class="font-display font-extrabold text-blue-400 text-sm sm:text-lg">Синие Медведи</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 font-bold hidden sm:inline">Команда 1</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-slate-300">
+              <span>Счёт: <b id="team1Score" class="text-blue-300 font-extrabold text-sm">0</b></span>
+              <span class="text-slate-600">•</span>
+              <span class="text-slate-400">Серия: <b id="team1Streak" class="text-amber-400">0 🔥</b></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Central Tug Indicator Banner -->
+        <div class="text-center px-3 py-1 bg-slate-800/90 rounded-2xl border border-slate-700/70 shadow-inner">
+          <span class="text-[10px] uppercase font-black text-slate-400 block tracking-wider">Перевес каната</span>
+          <div id="ropeShiftLabel" class="font-display font-black text-sm sm:text-lg text-amber-300">
+            0 (Центр)
+          </div>
+        </div>
+
+        <!-- Team 2 Badge -->
+        <div class="flex items-center gap-2 sm:gap-3 flex-row-reverse text-right">
+          <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-rose-600/30 border-2 border-rose-500 flex items-center justify-center text-xl sm:text-2xl shadow-lg shadow-rose-500/30">
+            🦁
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5 justify-end">
+              <span id="team2NameDisplay" class="font-display font-extrabold text-rose-400 text-sm sm:text-lg">Красные Львы</span>
+              <span id="team2BadgeSub" class="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold hidden sm:inline">Команда 2</span>
+            </div>
+            <div class="flex items-center gap-2 justify-end text-xs text-slate-300">
+              <span class="text-slate-400">Серия: <b id="team2Streak" class="text-amber-400">0 🔥</b></span>
+              <span class="text-slate-600">•</span>
+              <span>Счёт: <b id="team2Score" class="text-rose-300 font-extrabold text-sm">0</b></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Distance Meter Bar with Ticks (-5 to +5) -->
+      <div class="mb-4 relative px-2">
+        <div class="h-3 w-full bg-slate-800/90 rounded-full overflow-hidden border border-slate-700/80 relative flex items-center">
+          <!-- Left side colored gradient fill based on rope position -->
+          <div class="absolute left-0 top-0 bottom-0 bg-blue-500/40 w-1/2"></div>
+          <div class="absolute right-0 top-0 bottom-0 bg-rose-500/40 w-1/2"></div>
+          <!-- Center line mark -->
+          <div class="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-1 bg-amber-400 z-10 shadow-sm shadow-amber-400"></div>
+          <!-- Current Position Needle indicator -->
+          <div id="meterNeedle" class="absolute left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 border-2 border-slate-900 shadow-md shadow-amber-500/50 transition-all duration-500 z-20 flex items-center justify-center text-[10px] font-black text-slate-950">
+            •
+          </div>
+        </div>
+
+        <!-- Scale ticks (-5, -4, ... 0 ... +5) -->
+        <div id="scaleTicks" class="flex justify-between items-center text-[10px] font-bold text-slate-400 px-1 mt-1">
+          <!-- populated dynamically according to target steps -->
+        </div>
+      </div>
+
+      <!-- Dynamic SVG Visual Tug Arena -->
+      <div id="visualArena" class="relative w-full h-44 sm:h-56 md:h-64 rounded-2xl bg-gradient-to-b from-sky-900/30 via-slate-800/60 to-emerald-950/40 border border-slate-700/50 overflow-hidden flex items-center justify-center">
+        
+        <!-- Stadium Background Elements -->
+        <div class="absolute inset-0 pointer-events-none opacity-20">
+          <div class="absolute bottom-10 left-0 right-0 h-1 border-t-2 border-dashed border-white/40"></div>
+          <div class="absolute top-4 left-1/4 w-32 h-16 bg-blue-500/10 rounded-full blur-xl"></div>
+          <div class="absolute top-4 right-1/4 w-32 h-16 bg-rose-500/10 rounded-full blur-xl"></div>
+        </div>
+
+        <!-- Center Mud Pit / Line Indicator -->
+        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-28 sm:w-36 h-8 bg-amber-950/40 rounded-t-full border-t-2 border-amber-600/40 blur-xs"></div>
+        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 sm:w-1.5 h-full bg-amber-400/30 border-l border-amber-400/50"></div>
+        <div class="absolute top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-slate-900/70 border border-slate-700 text-[10px] font-black text-amber-300">
+          🚩 ЦЕНТР
+        </div>
+
+        <!-- Dynamic Tug-Of-War SVG Stage -->
+        <svg id="tugSvg" class="w-full h-full" viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <!-- Rope Pattern Gradient -->
+            <linearGradient id="ropeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#b45309" />
+              <stop offset="50%" stop-color="#f59e0b" />
+              <stop offset="100%" stop-color="#b45309" />
+            </linearGradient>
+
+            <linearGradient id="blueJersey" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#3b82f6" />
+              <stop offset="100%" stop-color="#1d4ed8" />
+            </linearGradient>
+
+            <linearGradient id="redJersey" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#ef4444" />
+              <stop offset="100%" stop-color="#b91c1c" />
+            </linearGradient>
+
+            <filter id="shadowFilter" x="-10%" y="-10%" width="120%" height="120%">
+              <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.35"/>
+            </filter>
+          </defs>
+
+          <!-- Ground Line -->
+          <line x1="20" y1="240" x2="980" y2="240" stroke="#334155" stroke-width="4" stroke-linecap="round"/>
+
+          <!-- Entire Movable Rig (Characters + Rope + Ribbon) -->
+          <g id="movableRig" class="transition-transform duration-500 ease-out" transform="translate(0, 0)">
+            
+            <!-- THE ROPE -->
+            <!-- Main thick twisted rope -->
+            <path id="ropePath" d="M 80 180 Q 500 188 920 180" fill="none" stroke="url(#ropeGrad)" stroke-width="12" stroke-linecap="round" stroke-dasharray="16, 4" filter="url(#shadowFilter)"/>
+            
+            <!-- Rope fray details -->
+            <path d="M 75 180 Q 500 188 925 180" fill="none" stroke="#78350f" stroke-width="2" stroke-linecap="round"/>
+
+            <!-- Central Red Ribbon / Flag on the rope -->
+            <g id="centerRibbon" transform="translate(500, 185)">
+              <!-- Hanging red flag -->
+              <polygon points="-8,-4 8,-4 0,38" fill="#dc2626" stroke="#991b1b" stroke-width="1.5" filter="url(#shadowFilter)"/>
+              <!-- Ribbon knot -->
+              <circle cx="0" cy="-2" r="7" fill="#fbbf24" stroke="#d97706" stroke-width="2"/>
+            </g>
+
+            <!-- ================= LEFT TEAM CHARACTERS (BLUE) ================= -->
+            <!-- Player 1 (Lead puller, closest to center) -->
+            <g id="leftChar1" transform="translate(380, 140)">
+              <!-- Body leaning backward (angle -22 deg) -->
+              <g transform="rotate(-20, 20, 90)">
+                <!-- Legs braced -->
+                <line x1="15" y1="75" x2="-10" y2="100" stroke="#1e293b" stroke-width="9" stroke-linecap="round"/>
+                <line x1="25" y1="75" x2="10" y2="100" stroke="#0f172a" stroke-width="9" stroke-linecap="round"/>
+                <!-- Shoes -->
+                <ellipse cx="-16" cy="100" rx="10" ry="5" fill="#3b82f6"/>
+                <ellipse cx="6" cy="100" rx="10" ry="5" fill="#2563eb"/>
+                <!-- Torso -->
+                <rect x="5" y="25" width="30" height="52" rx="12" fill="url(#blueJersey)" filter="url(#shadowFilter)"/>
+                <text x="20" y="55" fill="#ffffff" font-size="16" font-weight="900" text-anchor="middle" font-family="'Nunito', sans-serif">1</text>
+                <!-- Head -->
+                <circle cx="20" cy="10" r="19" fill="#fde047" stroke="#ca8a04" stroke-width="2"/>
+                <!-- Bear ears / headband -->
+                <circle cx="6" cy="-4" r="6" fill="#3b82f6"/>
+                <circle cx="34" cy="-4" r="6" fill="#3b82f6"/>
+                <!-- Face (determined grin) -->
+                <circle cx="14" cy="9" r="2.5" fill="#0f172a"/>
+                <circle cx="26" cy="9" r="2.5" fill="#0f172a"/>
+                <path d="M 13 18 Q 20 25 27 18" stroke="#0f172a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <!-- Determined brow -->
+                <path d="M 11 4 L 18 8" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+                <path d="M 29 4 L 22 8" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+                <!-- Arms gripping rope -->
+                <path d="M 10 40 L 35 46 L 50 42" stroke="#fde047" stroke-width="7" stroke-linecap="round" fill="none"/>
+                <!-- Hands / gloves -->
+                <circle cx="48" cy="43" r="6" fill="#1e3a8a"/>
+              </g>
+            </g>
+
+            <!-- Player 2 (Middle anchor) -->
+            <g id="leftChar2" transform="translate(260, 140)">
+              <g transform="rotate(-23, 20, 90)">
+                <line x1="15" y1="75" x2="-8" y2="100" stroke="#1e293b" stroke-width="9" stroke-linecap="round"/>
+                <line x1="25" y1="75" x2="12" y2="100" stroke="#0f172a" stroke-width="9" stroke-linecap="round"/>
+                <ellipse cx="-14" cy="100" rx="10" ry="5" fill="#3b82f6"/>
+                <ellipse cx="8" cy="100" rx="10" ry="5" fill="#2563eb"/>
+                <rect x="5" y="25" width="30" height="52" rx="12" fill="url(#blueJersey)" filter="url(#shadowFilter)"/>
+                <text x="20" y="55" fill="#ffffff" font-size="16" font-weight="900" text-anchor="middle" font-family="'Nunito', sans-serif">2</text>
+                <circle cx="20" cy="10" r="19" fill="#fed7aa" stroke="#ea580c" stroke-width="2"/>
+                <circle cx="6" cy="-4" r="6" fill="#2563eb"/>
+                <circle cx="34" cy="-4" r="6" fill="#2563eb"/>
+                <circle cx="14" cy="9" r="2.5" fill="#0f172a"/>
+                <circle cx="26" cy="9" r="2.5" fill="#0f172a"/>
+                <path d="M 14 18 Q 20 24 26 18" stroke="#0f172a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <path d="M 10 40 L 38 46 L 52 42" stroke="#fed7aa" stroke-width="7" stroke-linecap="round" fill="none"/>
+                <circle cx="50" cy="43" r="6" fill="#1e3a8a"/>
+              </g>
+            </g>
+
+            <!-- Player 3 (Rear Anchor, heavy puller) -->
+            <g id="leftChar3" transform="translate(140, 135)">
+              <g transform="rotate(-26, 25, 95)">
+                <line x1="18" y1="80" x2="-10" y2="105" stroke="#1e293b" stroke-width="11" stroke-linecap="round"/>
+                <line x1="30" y1="80" x2="16" y2="105" stroke="#0f172a" stroke-width="11" stroke-linecap="round"/>
+                <ellipse cx="-16" cy="105" rx="12" ry="6" fill="#1d4ed8"/>
+                <ellipse cx="14" cy="105" rx="12" ry="6" fill="#1e40af"/>
+                <!-- Bigger strong torso -->
+                <rect x="3" y="20" width="38" height="60" rx="14" fill="url(#blueJersey)" filter="url(#shadowFilter)"/>
+                <text x="22" y="55" fill="#ffffff" font-size="17" font-weight="900" text-anchor="middle" font-family="'Nunito', sans-serif">⚓</text>
+                <circle cx="22" cy="4" r="20" fill="#fde047" stroke="#ca8a04" stroke-width="2"/>
+                <path d="M 2 4 Q 22 -14 42 4" fill="#3b82f6"/>
+                <circle cx="16" cy="4" r="2.5" fill="#0f172a"/>
+                <circle cx="28" cy="4" r="2.5" fill="#0f172a"/>
+                <ellipse cx="22" cy="14" rx="4" ry="2" fill="#0f172a"/>
+                <!-- Heavy grip arm wrapped around rope end -->
+                <path d="M 8 36 L 42 45 L 60 40" stroke="#fde047" stroke-width="8" stroke-linecap="round" fill="none"/>
+                <circle cx="58" cy="41" r="7" fill="#1e3a8a"/>
+              </g>
+            </g>
+
+            <!-- ================= RIGHT TEAM CHARACTERS (RED) ================= -->
+            <!-- Player 1 (Lead puller, closest to center) -->
+            <g id="rightChar1" transform="translate(620, 140)">
+              <!-- Leaning backward to right side (angle +20 deg) -->
+              <g transform="rotate(20, 20, 90)">
+                <line x1="25" y1="75" x2="50" y2="100" stroke="#1e293b" stroke-width="9" stroke-linecap="round"/>
+                <line x1="15" y1="75" x2="30" y2="100" stroke="#0f172a" stroke-width="9" stroke-linecap="round"/>
+                <ellipse cx="56" cy="100" rx="10" ry="5" fill="#ef4444"/>
+                <ellipse cx="34" cy="100" rx="10" ry="5" fill="#dc2626"/>
+                <rect x="5" y="25" width="30" height="52" rx="12" fill="url(#redJersey)" filter="url(#shadowFilter)"/>
+                <text x="20" y="55" fill="#ffffff" font-size="16" font-weight="900" text-anchor="middle" font-family="'Nunito', sans-serif">1</text>
+                <circle cx="20" cy="10" r="19" fill="#fecaca" stroke="#dc2626" stroke-width="2"/>
+                <!-- Lion mane / ears -->
+                <circle cx="6" cy="-4" r="6" fill="#ef4444"/>
+                <circle cx="34" cy="-4" r="6" fill="#ef4444"/>
+                <circle cx="14" cy="9" r="2.5" fill="#0f172a"/>
+                <circle cx="26" cy="9" r="2.5" fill="#0f172a"/>
+                <path d="M 13 18 Q 20 25 27 18" stroke="#0f172a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <path d="M 11 8 L 18 4" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+                <path d="M 29 8 L 22 4" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+                <path d="M 30 40 L 5 46 L -10 42" stroke="#fecaca" stroke-width="7" stroke-linecap="round" fill="none"/>
+                <circle cx="-8" cy="43" r="6" fill="#991b1b"/>
+              </g>
+            </g>
+
+            <!-- Player 2 (Middle) -->
+            <g id="rightChar2" transform="translate(740, 140)">
+              <g transform="rotate(23, 20, 90)">
+                <line x1="25" y1="75" x2="48" y2="100" stroke="#1e293b" stroke-width="9" stroke-linecap="round"/>
+                <line x1="15" y1="75" x2="28" y2="100" stroke="#0f172a" stroke-width="9" stroke-linecap="round"/>
+                <ellipse cx="54" cy="100" rx="10" ry="5" fill="#ef4444"/>
+                <ellipse cx="32" cy="100" rx="10" ry="5" fill="#dc2626"/>
+                <rect x="5" y="25" width="30" height="52" rx="12" fill="url(#redJersey)" filter="url(#shadowFilter)"/>
+                <text x="20" y="55" fill="#ffffff" font-size="16" font-weight="900" text-anchor="middle" font-family="'Nunito', sans-serif">2</text>
+                <circle cx="20" cy="10" r="19" fill="#fed7aa" stroke="#ea580c" stroke-width="2"/>
+                <circle cx="6" cy="-4" r="6" fill="#b91c1c"/>
+                <circle cx="34" cy="-4" r="6" fill="#b91c1c"/>
+                <circle cx="14" cy="9" r="2.5" fill="#0f172a"/>
+                <circle cx="26" cy="9" r="2.5" fill="#0f172a"/>
+                <path d="M 14 18 Q 20 24 26 18" stroke="#0f172a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <path d="M 30 40 L 2 46 L -12 42" stroke="#fed7aa" stroke-width="7" stroke-linecap="round" fill="none"/>
+                <circle cx="-10" cy="43" r="6" fill="#991b1b"/>
+              </g>
+            </g>
+
+            <!-- Player 3 (Rear Anchor) -->
+            <g id="rightChar3" transform="translate(860, 135)">
+              <g transform="rotate(26, 15, 95)">
+                <line x1="22" y1="80" x2="50" y2="105" stroke="#1e293b" stroke-width="11" stroke-linecap="round"/>
+                <line x1="10" y1="80" x2="24" y2="105" stroke="#0f172a" stroke-width="11" stroke-linecap="round"/>
+                <ellipse cx="56" cy="105" rx="12" ry="6" fill="#b91c1c"/>
+                <ellipse cx="26" cy="105" rx="12" ry="6" fill="#991b1b"/>
+                <rect x="-1" y="20" width="38" height="60" rx="14" fill="url(#redJersey)" filter="url(#shadowFilter)"/>
+                <text x="18" y="55" fill="#ffffff" font-size="17" font-weight="900" text-anchor="middle" font-family="'Nunito', sans-serif">⚓</text>
+                <circle cx="18" cy="4" r="20" fill="#fecaca" stroke="#dc2626" stroke-width="2"/>
+                <path d="M -2 4 Q 18 -14 38 4" fill="#ef4444"/>
+                <circle cx="12" cy="4" r="2.5" fill="#0f172a"/>
+                <circle cx="24" cy="4" r="2.5" fill="#0f172a"/>
+                <ellipse cx="18" cy="14" rx="4" ry="2" fill="#0f172a"/>
+                <path d="M 32 36 L -2 45 L -20 40" stroke="#fecaca" stroke-width="8" stroke-linecap="round" fill="none"/>
+                <circle cx="-18" cy="41" r="7" fill="#991b1b"/>
+              </g>
+            </g>
+
+          </g> <!-- /movableRig -->
+
+          <!-- Dynamic Action Speech / Popups inside SVG -->
+          <g id="actionAlertLeft" opacity="0" transform="translate(240, 60)" class="transition-opacity duration-300">
+            <rect x="0" y="0" width="160" height="42" rx="12" fill="#1e3a8a" stroke="#60a5fa" stroke-width="2"/>
+            <text id="actionTextLeft" x="80" y="27" fill="#ffffff" font-size="16" font-weight="bold" text-anchor="middle" font-family="'Comfortaa', cursive">+1 ТЯГА! 💪</text>
+          </g>
+
+          <g id="actionAlertRight" opacity="0" transform="translate(600, 60)" class="transition-opacity duration-300">
+            <rect x="0" y="0" width="160" height="42" rx="12" fill="#7f1d1d" stroke="#f87171" stroke-width="2"/>
+            <text id="actionTextRight" x="80" y="27" fill="#ffffff" font-size="16" font-weight="bold" text-anchor="middle" font-family="'Comfortaa', cursive">+1 ТЯГА! 💪</text>
+          </g>
+        </svg>
+
+        <!-- Floating Dust Particles Container -->
+        <div id="dustLayer" class="absolute inset-0 pointer-events-none"></div>
+
+      </div>
+    </div>
+
+    <!-- 2. SIMULTANEOUS DUAL GAME PANELS (LEFT TEAM & RIGHT TEAM) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 flex-1 items-stretch">
+      
+      <!-- ================= TEAM 1 (BLUE) PANEL ================= -->
+      <section class="bg-gradient-to-b from-blue-950/70 via-slate-900/90 to-slate-900/95 border-2 border-blue-500/40 rounded-3xl p-4 sm:p-5 flex flex-col justify-between shadow-xl relative overflow-hidden backdrop-blur-md">
+        <!-- Accent corner glow -->
+        <div class="absolute -top-12 -left-12 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div>
+          <!-- Header info -->
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-blue-400 animate-ping"></span>
+              <span class="text-xs uppercase font-extrabold text-blue-300 tracking-wider">Синяя команда (Игрок 1)</span>
+            </div>
+            <!-- Hotkey guide hint -->
+            <span class="text-[11px] px-2 py-0.5 rounded-lg bg-blue-900/60 text-blue-200 border border-blue-700/60 font-semibold hidden sm:inline">
+              Клавиши: <b class="text-amber-300">A, S, D, F</b> (Ф, Ы, В, А)
+            </span>
+          </div>
+
+          <!-- Problem Display Box -->
+          <div class="bg-slate-950/80 rounded-2xl border border-blue-500/30 p-4 sm:p-5 text-center shadow-inner relative group mb-4">
+            <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+              Реши пример:
+            </div>
+            
+            <div id="team1ProblemText" class="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-sky-300 to-white tracking-wide">
+              7 × 8 = ?
+            </div>
+
+            <!-- Instant Feedback Banner -->
+            <div id="team1Feedback" class="h-6 mt-2 flex items-center justify-center text-xs sm:text-sm font-bold text-slate-400 transition-all">
+              Нажмите правильный ответ!
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Answer Options (Multiple Choice with Hotkeys) -->
+        <div class="grid grid-cols-2 gap-2.5 sm:gap-3">
+          <button id="t1_opt_0" onclick="handleAnswer(1, 0)" class="relative group bg-slate-800/90 hover:bg-blue-600/30 active:bg-blue-600/50 border-2 border-slate-700/80 hover:border-blue-400 rounded-2xl p-3 sm:p-4 text-center transition-all duration-150 cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98]">
+            <span class="absolute top-2 left-2.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800/60 group-hover:border-blue-400">
+              A / Ф
+            </span>
+            <span class="font-display font-extrabold text-2xl sm:text-3xl text-white block pt-2 opt-value">
+              --
+            </span>
+          </button>
+
+          <button id="t1_opt_1" onclick="handleAnswer(1, 1)" class="relative group bg-slate-800/90 hover:bg-blue-600/30 active:bg-blue-600/50 border-2 border-slate-700/80 hover:border-blue-400 rounded-2xl p-3 sm:p-4 text-center transition-all duration-150 cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98]">
+            <span class="absolute top-2 left-2.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800/60 group-hover:border-blue-400">
+              S / Ы
+            </span>
+            <span class="font-display font-extrabold text-2xl sm:text-3xl text-white block pt-2 opt-value">
+              --
+            </span>
+          </button>
+
+          <button id="t1_opt_2" onclick="handleAnswer(1, 2)" class="relative group bg-slate-800/90 hover:bg-blue-600/30 active:bg-blue-600/50 border-2 border-slate-700/80 hover:border-blue-400 rounded-2xl p-3 sm:p-4 text-center transition-all duration-150 cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98]">
+            <span class="absolute top-2 left-2.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800/60 group-hover:border-blue-400">
+              D / В
+            </span>
+            <span class="font-display font-extrabold text-2xl sm:text-3xl text-white block pt-2 opt-value">
+              --
+            </span>
+          </button>
+
+          <button id="t1_opt_3" onclick="handleAnswer(1, 3)" class="relative group bg-slate-800/90 hover:bg-blue-600/30 active:bg-blue-600/50 border-2 border-slate-700/80 hover:border-blue-400 rounded-2xl p-3 sm:p-4 text-center transition-all duration-150 cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98]">
+            <span class="absolute top-2 left-2.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800/60 group-hover:border-blue-400">
+              F / А
+            </span>
+            <span class="font-display font-extrabold text-2xl sm:text-3xl text-white block pt-2 opt-value">
+              --
+            </span>
+          </button>
+        </div>
+
+        <!-- Cooldown / lockout progress overlay if penalized -->
+        <div id="t1_cooldown" class="hidden absolute inset-0 bg-slate-950/75 backdrop-blur-xs rounded-3xl flex flex-col items-center justify-center p-4 z-20">
+          <span class="text-3xl mb-1 animate-bounce">⏳</span>
+          <span class="text-rose-400 font-extrabold text-sm mb-1">Штраф за ошибку!</span>
+          <span id="t1_errorExpl" class="text-amber-300 font-bold text-xs mb-2 text-center"></span>
+          <div class="w-36 h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div id="t1_cdBar" class="h-full bg-rose-500 w-full transition-all duration-100 ease-linear"></div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================= TEAM 2 (RED) PANEL ================= -->
+      <section class="bg-gradient-to-b from-rose-950/70 via-slate-900/90 to-slate-900/95 border-2 border-rose-500/40 rounded-3xl p-4 sm:p-5 flex flex-col justify-between shadow-xl relative overflow-hidden backdrop-blur-md">
+        <!-- Accent corner glow -->
+        <div class="absolute -top-12 -right-12 w-32 h-32 bg-rose-500/20 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div>
+          <!-- Header info -->
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-rose-400 animate-ping"></span>
+              <span id="t2_badgeLabel" class="text-xs uppercase font-extrabold text-rose-300 tracking-wider">Красная команда (Игрок 2)</span>
+            </div>
+            <!-- Hotkey guide hint -->
+            <span id="t2_hotkeyTip" class="text-[11px] px-2 py-0.5 rounded-lg bg-rose-900/60 text-rose-200 border border-rose-700/60 font-semibold hidden sm:inline">
+              Клавиши: <b class="text-amber-300">J, K, L, ;</b> или <b class="text-amber-300">Стрелки ↑ ← → ↓</b>
+            </span>
+          </div>
+
+          <!-- Problem Display Box -->
+          <div class="bg-slate-950/80 rounded-2xl border border-rose-500/30 p-4 sm:p-5 text-center shadow-inner relative group mb-4">
+            <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+              Реши пример:
+            </div>
+            
+            <div id="team2ProblemText" class="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-rose-200 via-orange-300 to-white tracking-wide">
+              9 × 6 = ?
+            </div>
+
+            <!-- Instant Feedback Banner -->
+            <div id="team2Feedback" class="h-6 mt-2 flex items-center justify-center text-xs sm:text-sm font-bold text-slate-400 transition-all">
+              Нажмите правильный ответ!
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Answer Options (Multiple Choice with Hotkeys) -->
+        <div class="grid grid-cols-2 gap-2.5 sm:gap-3">
+          <button id="t2_opt_0" onclick="handleAnswer(2, 0)" class="relative group bg-slate-800/90 hover:bg-rose-600/30 active:bg-rose-600/50 border-2 border-slate-700/80 hover:border-rose-400 rounded-2xl p-3 sm:p-4 text-center transition-all duration-150 cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98]">
+            <span class="absolute top-2 left-2.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800/60 group-hover:border-rose-400">
+              J (О) / ↑
+            </span>
+            <span class="font-display font-extrabold text-2xl sm:text-3xl text-white block pt-2 opt-value">
+              --
+            </span>
+          </button>
+
+          <button id="t2_opt_1" onclick="handleAnswer(2, 1)" class="relative group bg-slate-800/90 hover:bg-rose-600/30 active:bg-rose-600/50 border-2 border-slate-700/80 hover:border-rose-400 rounded-2xl p-3 sm:p-4 text-center transition-all duration-150 cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98]">
+            <span class="absolute top-2 left-2.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800/60 group-hover:border-rose-400">
+              K (Л) / ←
+            </span>
+            <span class="font-display font-extrabold text-2xl sm:text-3xl text-white block pt-2 opt-value">
+              --
+            </span>
+          </button>
+
+          <button id="t2_opt_2" onclick="handleAnswer(2, 2)" class="relative group bg-slate-800/90 hover:bg-rose-600/30 active:bg-rose-600/50 border-2 border-slate-700/80 hover:border-rose-400 rounded-2xl p-3 sm:p-4 text-center transition-all duration-150 cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98]">
+            <span class="absolute top-2 left-2.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800/60 group-hover:border-rose-400">
+              L (Д) / →
+            </span>
+            <span class="font-display font-extrabold text-2xl sm:text-3xl text-white block pt-2 opt-value">
+              --
+            </span>
+          </button>
+
+          <button id="t2_opt_3" onclick="handleAnswer(2, 3)" class="relative group bg-slate-800/90 hover:bg-rose-600/30 active:bg-rose-600/50 border-2 border-slate-700/80 hover:border-rose-400 rounded-2xl p-3 sm:p-4 text-center transition-all duration-150 cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98]">
+            <span class="absolute top-2 left-2.5 text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800/60 group-hover:border-rose-400">
+              ; (Ж) / ↓
+            </span>
+            <span class="font-display font-extrabold text-2xl sm:text-3xl text-white block pt-2 opt-value">
+              --
+            </span>
+          </button>
+        </div>
+
+        <!-- Cooldown / lockout progress overlay if penalized -->
+        <div id="t2_cooldown" class="hidden absolute inset-0 bg-slate-950/75 backdrop-blur-xs rounded-3xl flex flex-col items-center justify-center p-4 z-20">
+          <span class="text-3xl mb-1 animate-bounce">⏳</span>
+          <span class="text-rose-400 font-extrabold text-sm mb-1">Штраф за ошибку!</span>
+          <span id="t2_errorExpl" class="text-amber-300 font-bold text-xs mb-2 text-center"></span>
+          <div class="w-36 h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div id="t2_cdBar" class="h-full bg-rose-500 w-full transition-all duration-100 ease-linear"></div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- ================= FOOTER HINTS & QUICK STATS ================= -->
+  <footer class="w-full px-4 py-2 bg-slate-950/80 border-t border-slate-800/80 text-xs text-slate-400 flex flex-wrap items-center justify-between gap-2">
+    <div class="flex items-center gap-3">
+      <span>💡 <b>Управление:</b> Игрок 1: <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-blue-300">A</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-blue-300">S</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-blue-300">D</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-blue-300">F</kbd></span>
+      <span>•</span>
+      <span>Игрок 2: <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-rose-300">J</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-rose-300">K</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-rose-300">L</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-rose-300">;</kbd> или Стрелки <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-rose-300">↑</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-rose-300">←</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-rose-300">→</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-rose-300">↓</kbd></span>
+    </div>
+    <div>
+      <span>🎯 Тренируются множители: <b id="activeTablesTag" class="text-amber-300">5, 6, 7, 8, 9</b></span>
+    </div>
+  </footer>
+
+  <!-- ================= MODAL: SETTINGS & GAME CONFIG ================= -->
+  <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-slate-900 border-2 border-sky-600/40 rounded-3xl max-w-xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      
+      <!-- Close button -->
+      <button onclick="closeSettings()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-white text-xl rounded-xl hover:bg-slate-800 transition-colors cursor-pointer">
+        ✕
+      </button>
+
+      <h2 class="font-display font-black text-xl sm:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-200 mb-1 flex items-center gap-2">
+        <span>⚙️</span> Настройки Тренажёра
+      </h2>
+      <p class="text-xs sm:text-sm text-slate-400 mb-5">
+        Настройте правила перетягивания каната и выбирайте таблицы умножения для урока.
+      </p>
+
+      <div class="space-y-5">
+        
+        <!-- 1. Mode Selection -->
+        <div>
+          <label class="block text-xs uppercase font-extrabold text-slate-300 tracking-wider mb-2">
+            Режим соперничества
+          </label>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" onclick="setGameMode('pvp')" id="modeBtn_pvp" class="mode-select-btn p-3 rounded-2xl border-2 text-center transition-all cursor-pointer bg-amber-500/10 border-amber-500 text-amber-300 font-bold text-xs sm:text-sm">
+              <span class="text-xl block mb-1">👥</span>
+              2 Игрока
+            </button>
+            <button type="button" onclick="setGameMode('ai_easy')" id="modeBtn_ai_easy" class="mode-select-btn p-3 rounded-2xl border-2 text-center transition-all cursor-pointer bg-slate-800/80 border-slate-700 text-slate-300 hover:border-slate-500 font-bold text-xs sm:text-sm">
+              <span class="text-xl block mb-1">🤖</span>
+              Бот (Легкий)
+            </button>
+            <button type="button" onclick="setGameMode('ai_hard')" id="modeBtn_ai_hard" class="mode-select-btn p-3 rounded-2xl border-2 text-center transition-all cursor-pointer bg-slate-800/80 border-slate-700 text-slate-300 hover:border-slate-500 font-bold text-xs sm:text-sm">
+              <span class="text-xl block mb-1">⚡</span>
+              Бот (Профи)
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Tables to practice (5, 6, 7, 8, 9) -->
+        <div>
+          <label class="block text-xs uppercase font-extrabold text-slate-300 tracking-wider mb-2">
+            Таблицы для отработки (нажмите для выбора)
+          </label>
+          <div class="grid grid-cols-5 gap-2">
+            <label class="cursor-pointer select-none">
+              <input type="checkbox" id="chk_table_5" value="5" checked class="hidden peer" onchange="updateTableSelection()">
+              <div class="p-3 text-center rounded-2xl border-2 border-slate-700 peer-checked:border-amber-400 peer-checked:bg-amber-400/20 peer-checked:text-amber-300 font-display font-black text-lg transition-all hover:border-slate-500">
+                × 5
+              </div>
+            </label>
+            <label class="cursor-pointer select-none">
+              <input type="checkbox" id="chk_table_6" value="6" checked class="hidden peer" onchange="updateTableSelection()">
+              <div class="p-3 text-center rounded-2xl border-2 border-slate-700 peer-checked:border-amber-400 peer-checked:bg-amber-400/20 peer-checked:text-amber-300 font-display font-black text-lg transition-all hover:border-slate-500">
+                × 6
+              </div>
+            </label>
+            <label class="cursor-pointer select-none">
+              <input type="checkbox" id="chk_table_7" value="7" checked class="hidden peer" onchange="updateTableSelection()">
+              <div class="p-3 text-center rounded-2xl border-2 border-slate-700 peer-checked:border-amber-400 peer-checked:bg-amber-400/20 peer-checked:text-amber-300 font-display font-black text-lg transition-all hover:border-slate-500">
+                × 7
+              </div>
+            </label>
+            <label class="cursor-pointer select-none">
+              <input type="checkbox" id="chk_table_8" value="8" checked class="hidden peer" onchange="updateTableSelection()">
+              <div class="p-3 text-center rounded-2xl border-2 border-slate-700 peer-checked:border-amber-400 peer-checked:bg-amber-400/20 peer-checked:text-amber-300 font-display font-black text-lg transition-all hover:border-slate-500">
+                × 8
+              </div>
+            </label>
+            <label class="cursor-pointer select-none">
+              <input type="checkbox" id="chk_table_9" value="9" checked class="hidden peer" onchange="updateTableSelection()">
+              <div class="p-3 text-center rounded-2xl border-2 border-slate-700 peer-checked:border-amber-400 peer-checked:bg-amber-400/20 peer-checked:text-amber-300 font-display font-black text-lg transition-all hover:border-slate-500">
+                × 9
+              </div>
+            </label>
+          </div>
+          <p id="tableWarning" class="text-rose-400 text-xs mt-1.5 hidden">⚠️ Выберите хотя бы одну таблицу умножения!</p>
+        </div>
+
+        <!-- 3. Target steps to win (Rope distance) -->
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-xs uppercase font-extrabold text-slate-300 tracking-wider">
+              Дистанция для победы: <span id="winStepsVal" class="text-amber-400 font-bold">5</span> шагов
+            </label>
+            <span class="text-xs text-slate-500">Быстрый матч (3) или долгий (7)</span>
+          </div>
+          <input type="range" id="winStepsRange" min="3" max="8" value="5" step="1" oninput="changeWinSteps(this.value)" class="w-full accent-amber-400 cursor-pointer">
+          <div class="flex justify-between text-[11px] text-slate-400 mt-1">
+            <span>3 шага (Быстрый)</span>
+            <span>5 шагов (Стандарт)</span>
+            <span>8 шагов (Эпический)</span>
+          </div>
+        </div>
+
+        <!-- 4. Penalty Rule Setting -->
+        <div class="bg-slate-950/60 p-3.5 rounded-2xl border border-slate-800">
+          <label class="block text-xs uppercase font-extrabold text-slate-300 tracking-wider mb-2">
+            Правило при ошибке в ответе:
+          </label>
+          <div class="space-y-2 text-xs">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="penaltyRule" value="giveAdvantage" checked onchange="setPenaltyRule('giveAdvantage')" class="accent-amber-400">
+              <span class="text-slate-200"><b>Классика:</b> канат сдвигается к сопернику (-1 шаг) + задержка 1.5 сек</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="penaltyRule" value="noAdvantage" onchange="setPenaltyRule('noAdvantage')" class="accent-amber-400">
+              <span class="text-slate-200"><b>Мягкий:</b> канат не сдвигается, только пауза 1.5 сек на показ ошибки</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 5. Team Names Customization -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-blue-300 uppercase mb-1">Название Команды 1</label>
+            <input type="text" id="t1NameInput" value="Синие Медведи" maxlength="16" class="w-full bg-slate-950 border border-blue-500/40 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-400">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-rose-300 uppercase mb-1">Название Команды 2</label>
+            <input type="text" id="t2NameInput" value="Красные Львы" maxlength="16" class="w-full bg-slate-950 border border-rose-500/40 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-rose-400">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Footer -->
+      <div class="mt-6 flex justify-end gap-3">
+        <button onclick="saveAndRestart()" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/25 transition-all hover:scale-105 active:scale-95 cursor-pointer">
+          💾 Сохранить и Начать новый раунд
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= MODAL: CHEAT SHEET (ТАБЛИЦА УМНОЖЕНИЯ 5-9) ================= -->
+  <div id="cheatsheetModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-slate-900 border-2 border-sky-500/40 rounded-3xl max-w-4xl w-full p-5 sm:p-6 shadow-2xl relative max-h-[92vh] overflow-y-auto">
+      
+      <button onclick="closeCheatSheet()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-white text-xl rounded-xl hover:bg-slate-800 transition-colors cursor-pointer">
+        ✕
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-3xl">📖</span>
+        <div>
+          <h2 class="font-display font-black text-xl sm:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-sky-300 via-amber-300 to-yellow-200">
+            Шпаргалка: Таблица Умножения (5, 6, 7, 8, 9)
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400">
+            Изучите подсказки и закономерности перед перетягиванием каната!
+          </p>
+        </div>
+      </div>
+
+      <!-- Tables Grid: 5 to 9 -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 mb-5 text-sm">
+        
+        <!-- Table 5 -->
+        <div class="bg-slate-950/70 rounded-2xl border border-emerald-500/30 p-3.5">
+          <div class="flex items-center justify-between pb-2 border-b border-emerald-500/20 mb-2">
+            <h3 class="font-display font-black text-emerald-400">На 5</h3>
+            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-bold">Окончание 0 или 5</span>
+          </div>
+          <div class="space-y-1 text-slate-300 font-mono text-xs" id="table5Grid"></div>
+        </div>
+
+        <!-- Table 6 -->
+        <div class="bg-slate-950/70 rounded-2xl border border-sky-500/30 p-3.5">
+          <div class="flex items-center justify-between pb-2 border-b border-sky-500/20 mb-2">
+            <h3 class="font-display font-black text-sky-400">На 6</h3>
+            <span class="text-[10px] bg-sky-500/20 text-sky-300 px-1.5 py-0.5 rounded font-bold">Чётные ответы</span>
+          </div>
+          <div class="space-y-1 text-slate-300 font-mono text-xs" id="table6Grid"></div>
+        </div>
+
+        <!-- Table 7 -->
+        <div class="bg-slate-950/70 rounded-2xl border border-indigo-500/30 p-3.5">
+          <div class="flex items-center justify-between pb-2 border-b border-indigo-500/20 mb-2">
+            <h3 class="font-display font-black text-indigo-400">На 7</h3>
+            <span class="text-[10px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded font-bold">7×8 = 56!</span>
+          </div>
+          <div class="space-y-1 text-slate-300 font-mono text-xs" id="table7Grid"></div>
+        </div>
+
+        <!-- Table 8 -->
+        <div class="bg-slate-950/70 rounded-2xl border border-purple-500/30 p-3.5">
+          <div class="flex items-center justify-between pb-2 border-b border-purple-500/20 mb-2">
+            <h3 class="font-display font-black text-purple-400">На 8</h3>
+            <span class="text-[10px] bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded font-bold">Трижды удвоить</span>
+          </div>
+          <div class="space-y-1 text-slate-300 font-mono text-xs" id="table8Grid"></div>
+        </div>
+
+        <!-- Table 9 -->
+        <div class="bg-slate-950/70 rounded-2xl border border-amber-500/30 p-3.5">
+          <div class="flex items-center justify-between pb-2 border-b border-amber-500/20 mb-2">
+            <h3 class="font-display font-black text-amber-400">На 9</h3>
+            <span class="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-bold">Сумма цифр = 9</span>
+          </div>
+          <div class="space-y-1 text-slate-300 font-mono text-xs" id="table9Grid"></div>
+        </div>
+
+      </div>
+
+      <!-- Helpful Memory Tricks -->
+      <div class="bg-slate-950/90 rounded-2xl p-4 border border-slate-800 text-xs text-slate-300 space-y-2">
+        <h4 class="font-bold text-amber-300 flex items-center gap-1.5">
+          <span>🧠</span> Лайфхаки для быстрого счёта:
+        </h4>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+          <div class="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+            <b class="text-sky-300 block mb-1">Ритм 5, 6, 7, 8:</b>
+            Запомни последовательность цифр: <b>5, 6, 7, 8</b> -> это <b>56 = 7 × 8</b>! Самый частый пример с ошибками.
+          </div>
+          <div class="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+            <b class="text-amber-300 block mb-1">Секрет Девятки:</b>
+            При умножении на 9 первая цифра всегда на 1 меньше множителя, а сумма цифр результата равна 9 (например, 9×7 = <b>6</b> и 6+<b>3</b>=9 -> <b>63</b>)!
+          </div>
+          <div class="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+            <b class="text-emerald-300 block mb-1">Перестановка множителей:</b>
+            Помни: <b>8 × 6</b> — это ровно то же самое, что <b>6 × 8 = 48</b>. Считай так, как легче!
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5 text-center">
+        <button onclick="closeCheatSheet()" class="px-6 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-sm transition-all hover:scale-105 active:scale-95 cursor-pointer">
+          Понятно, идём побеждать! 🚀
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= MODAL: GAME OVER / VICTORY CELEBRATION ================= -->
+  <div id="victoryModal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-slate-900 to-slate-950 border-3 border-amber-400 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl relative text-center overflow-hidden">
+      
+      <!-- Ambient celebratory glow -->
+      <div id="victoryGlow" class="absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-64 bg-amber-500/25 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Big Trophy Icon -->
+      <div class="text-6xl sm:text-7xl mb-3 animate-bounce">
+        🏆
+      </div>
+
+      <span class="text-xs uppercase font-black text-amber-400 tracking-widest block mb-1">
+        ПЕРЕТЯГИВАНИЕ ЗАВЕРШЕНО!
+      </span>
+
+      <h2 id="winnerTitle" class="font-display font-black text-2xl sm:text-4xl text-white mb-2">
+        Победили Синие Медведи!
+      </h2>
+
+      <p id="winnerSubtitle" class="text-sm text-slate-300 max-w-md mx-auto mb-6">
+        Команда проявила феноменальное знание таблицы умножения и перетянула канат на свою сторону!
+      </p>
+
+      <!-- Match Statistics Summary Cards -->
+      <div class="grid grid-cols-2 gap-3 mb-6 text-left">
+        <!-- Team 1 Stats -->
+        <div class="bg-blue-950/50 border border-blue-500/40 rounded-2xl p-3.5">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">🐻</span>
+            <span id="winT1Name" class="font-bold text-xs sm:text-sm text-blue-300">Синие Медведи</span>
+          </div>
+          <div class="space-y-1 text-xs">
+            <div class="flex justify-between text-slate-400">
+              <span>Правильных:</span>
+              <b id="winT1Correct" class="text-blue-300">0</b>
+            </div>
+            <div class="flex justify-between text-slate-400">
+              <span>Ошибок:</span>
+              <b id="winT1Mistakes" class="text-rose-400">0</b>
+            </div>
+            <div class="flex justify-between text-slate-400">
+              <span>Точность:</span>
+              <b id="winT1Acc" class="text-amber-300">100%</b>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team 2 Stats -->
+        <div class="bg-rose-950/50 border border-rose-500/40 rounded-2xl p-3.5">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">🦁</span>
+            <span id="winT2Name" class="font-bold text-xs sm:text-sm text-rose-300">Красные Львы</span>
+          </div>
+          <div class="space-y-1 text-xs">
+            <div class="flex justify-between text-slate-400">
+              <span>Правильных:</span>
+              <b id="winT2Correct" class="text-rose-300">0</b>
+            </div>
+            <div class="flex justify-between text-slate-400">
+              <span>Ошибок:</span>
+              <b id="winT2Mistakes" class="text-rose-400">0</b>
+            </div>
+            <div class="flex justify-between text-slate-400">
+              <span>Точность:</span>
+              <b id="winT2Acc" class="text-amber-300">100%</b>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mistake Review Section (Pedagogical Learning) -->
+      <div id="mistakesReviewContainer" class="bg-slate-950/80 rounded-2xl p-3.5 border border-slate-800 text-left mb-6 max-h-40 overflow-y-auto">
+        <h4 class="text-xs font-bold text-amber-300 mb-2 flex items-center gap-1.5">
+          <span>📝</span> Примеры, в которых были ошибки:
+        </h4>
+        <div id="mistakesList" class="space-y-1.5 text-xs text-slate-300">
+          <!-- Dynamically populated or 'Ошибок не было! Отличный результат!' -->
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <button onclick="restartGame()" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-sm shadow-xl shadow-amber-500/25 transition-all hover:scale-105 active:scale-95 cursor-pointer">
+          🔄 Играть Реванш!
+        </button>
+        <button onclick="openSettings()" class="px-5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm border border-slate-700 transition-all hover:scale-105 active:scale-95 cursor-pointer">
+          ⚙️ Изменить настройки
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Confetti Canvas -->
+  <canvas id="confettiCanvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+  <!-- ================= JAVASCRIPT GAME ENGINE ================= -->
+  <script>
+    /* =========================================================
+       AUDIO SYNTHESIZER (WEB AUDIO API) - Zero external dependencies
+       ========================================================= */
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggleMute() {
+        this.muted = !this.muted;
+        return this.muted;
+      }
+
+      playTone(freq, type, duration, gainStart = 0.2, gainEnd = 0.001) {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(gainStart, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(gainEnd, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {}
+      }
+
+      playCorrect() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        // Cheerful major chord arpeggio (C5 -> E5 -> G5)
+        [523.25, 659.25, 783.99].forEach((freq, idx) => {
+          try {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+            gain.gain.setValueAtTime(0.18, now + idx * 0.06);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.25);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + idx * 0.06);
+            osc.stop(now + idx * 0.06 + 0.25);
+          } catch (e) {}
+        });
+      }
+
+      playPull() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          // Creaking rope & effort swoosh
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(110, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(190, this.ctx.currentTime + 0.18);
+          gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.22);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.22);
+        } catch (e) {}
+      }
+
+      playWrong() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          // Low downward buzz
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(180, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.3);
+          gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.35);
+        } catch (e) {}
+      }
+
+      playWhistle() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          // Referee whistle modulation
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(2200, this.ctx.currentTime);
+          osc.frequency.setValueAtTime(2600, this.ctx.currentTime + 0.08);
+          osc.frequency.setValueAtTime(2400, this.ctx.currentTime + 0.16);
+          gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.45);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.45);
+        } catch (e) {}
+      }
+
+      playWin() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        // Victory Fanfare: C4, G4, C5, E5, G5
+        const notes = [261.63, 392.00, 523.25, 659.25, 783.99];
+        notes.forEach((freq, idx) => {
+          try {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            const startTime = now + idx * 0.12;
+            const dur = idx === notes.length - 1 ? 0.7 : 0.22;
+            osc.frequency.setValueAtTime(freq, startTime);
+            gain.gain.setValueAtTime(0.22, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(startTime);
+            osc.stop(startTime + dur);
+          } catch (e) {}
+        });
+      }
+    }
+
+    const sound = new SoundEngine();
+
+    /* =========================================================
+       CANVAS CONFETTI ENGINE (Zero dependency)
+       ========================================================= */
+    const confettiCanvas = document.getElementById('confettiCanvas');
+    const cctx = confettiCanvas.getContext('2d');
+    let confettiParticles = [];
+    let confettiAnimId = null;
+
+    function resizeConfetti() {
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeConfetti);
+    resizeConfetti();
+
+    function launchConfetti() {
+      confettiParticles = [];
+      const colors = ['#f59e0b', '#3b82f6', '#ef4444', '#10b981', '#ec4899', '#8b5cf6', '#eab308'];
+      for (let i = 0; i < 160; i++) {
+        confettiParticles.push({
+          x: confettiCanvas.width / 2 + (Math.random() - 0.5) * 200,
+          y: confettiCanvas.height / 2 - 50,
+          vx: (Math.random() - 0.5) * 16,
+          vy: Math.random() * -14 - 6,
+          size: Math.random() * 8 + 6,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          rotSpeed: (Math.random() - 0.5) * 14,
+          gravity: 0.35,
+          opacity: 1
+        });
+      }
+      if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
+      renderConfetti();
+    }
+
+    function renderConfetti() {
+      cctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      let aliveCount = 0;
+      confettiParticles.forEach(p => {
+        p.x += p.vx;
+        p.vy += p.gravity;
+        p.y += p.vy;
+        p.rotation += p.rotSpeed;
+        p.opacity -= 0.004;
+
+        if (p.opacity > 0 && p.y < confettiCanvas.height + 50) {
+          aliveCount++;
+          cctx.save();
+          cctx.translate(p.x, p.y);
+          cctx.rotate((p.rotation * Math.PI) / 180);
+          cctx.fillStyle = p.color;
+          cctx.globalAlpha = Math.max(0, p.opacity);
+          cctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.7);
+          cctx.restore();
+        }
+      });
+      if (aliveCount > 0) {
+        confettiAnimId = requestAnimationFrame(renderConfetti);
+      } else {
+        cctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      }
+    }
+
+    /* =========================================================
+       GAME STATE & CONFIGURATION
+       ========================================================= */
+    const state = {
+      // Configurable settings
+      gameMode: 'pvp', // 'pvp', 'ai_easy', 'ai_hard'
+      targetSteps: 5,   // Distance from center to win (-targetSteps or +targetSteps)
+      selectedTables: [5, 6, 7, 8, 9],
+      penaltyRule: 'giveAdvantage', // 'giveAdvantage' (+1 to opponent) or 'noAdvantage' (delay only)
+      team1Name: 'Синие Медведи',
+      team2Name: 'Красные Львы',
+
+      // Runtime dynamic state
+      ropePosition: 0, // -targetSteps (Team 1 wins) to +targetSteps (Team 2 wins)
+      isGameOver: false,
+      roundActive: true,
+
+      // Stats
+      team1: {
+        score: 0,
+        streak: 0,
+        mistakes: 0,
+        currentProblem: null,
+        isLocked: false
+      },
+      team2: {
+        score: 0,
+        streak: 0,
+        mistakes: 0,
+        currentProblem: null,
+        isLocked: false
+      },
+
+      // Error tracking for post-game pedagogical review
+      roundMistakes: [],
+
+      // AI Bot Timer handle
+      aiTimer: null
+    };
+
+    /* =========================================================
+       MATH PROBLEM GENERATOR (FOCUS ON TABLES 5-9)
+       ========================================================= */
+    function generateProblem(selectedTables) {
+      const tables = selectedTables && selectedTables.length > 0 ? selectedTables : [5, 6, 7, 8, 9];
+      const factorA = tables[Math.floor(Math.random() * tables.length)];
+      // Second multiplier: 2 to 10 (covering standard school curricula, including 5x5, 7x8, etc.)
+      const factorB = Math.floor(Math.random() * 9) + 2; // 2..10
+      
+      // Randomly swap presentation order (e.g., 7×8 or 8×7) so both commutative forms are recognized
+      const swap = Math.random() > 0.5;
+      const displayA = swap ? factorB : factorA;
+      const displayB = swap ? factorA : factorB;
+      const correctVal = factorA * factorB;
+
+      // Smart distractor generation: nearby multiples and typical school mistake answers
+      const distractors = new Set();
+      const possiblePool = [
+        correctVal - factorA,
+        correctVal + factorA,
+        correctVal - factorB,
+        correctVal + factorB,
+        correctVal - 10,
+        correctVal + 10,
+        correctVal - 2,
+        correctVal + 2,
+        (factorA - 1) * factorB,
+        (factorA + 1) * factorB,
+        factorA * (factorB - 1),
+        factorA * (factorB + 1)
+      ];
+
+      // Shuffle pool
+      possiblePool.sort(() => Math.random() - 0.5);
+
+      for (let cand of possiblePool) {
+        if (cand > 0 && cand !== correctVal) {
+          distractors.add(cand);
+          if (distractors.size >= 3) break;
+        }
+      }
+
+      // If somehow not enough, generate random nearby
+      while (distractors.size < 3) {
+        let delta = (Math.random() > 0.5 ? 1 : -1) * (Math.floor(Math.random() * 6) + 1);
+        let cand = correctVal + delta;
+        if (cand > 0 && cand !== correctVal) {
+          distractors.add(cand);
+        }
+      }
+
+      const options = [correctVal, ...Array.from(distractors).slice(0, 3)];
+      options.sort(() => Math.random() - 0.5);
+      const correctIndex = options.indexOf(correctVal);
+
+      return {
+        factorA: displayA,
+        factorB: displayB,
+        correctVal,
+        options,
+        correctIndex,
+        text: `${displayA} × ${displayB} = ?`
+      };
+    }
+
+    /* =========================================================
+       UI UPDATERS & RENDERERS
+       ========================================================= */
+    function renderScaleTicks() {
+      const container = document.getElementById('scaleTicks');
+      container.innerHTML = '';
+      const max = state.targetSteps;
+      for (let i = -max; i <= max; i++) {
+        const tick = document.createElement('span');
+        if (i === 0) {
+          tick.textContent = '0';
+          tick.className = 'text-amber-400 font-black text-xs';
+        } else if (i === -max) {
+          tick.textContent = `⬅ 🐻 WIN`;
+          tick.className = 'text-blue-400 font-extrabold';
+        } else if (i === max) {
+          tick.textContent = `🦁 WIN ➡`;
+          tick.className = 'text-rose-400 font-extrabold';
+        } else {
+          tick.textContent = i > 0 ? `+${i}` : `${i}`;
+          tick.className = i < 0 ? 'text-blue-400/80' : 'text-rose-400/80';
+        }
+        container.appendChild(tick);
+      }
+    }
+
+    function updateRopeVisual() {
+      const max = state.targetSteps;
+      // Percent position from 0% (Team 1 full win) to 100% (Team 2 full win)
+      // center is 50%
+      const normPos = state.ropePosition / max; // -1 to +1
+      const percent = 50 + normPos * 42; // stays in bounds 8% to 92%
+
+      // Update Meter Needle
+      const needle = document.getElementById('meterNeedle');
+      needle.style.left = `${percent}%`;
+
+      // Update Center Label
+      const label = document.getElementById('ropeShiftLabel');
+      if (state.ropePosition === 0) {
+        label.textContent = '0 (Центр)';
+        label.className = 'font-display font-black text-sm sm:text-lg text-amber-300';
+      } else if (state.ropePosition < 0) {
+        label.textContent = `⬅ ${Math.abs(state.ropePosition)} в пользу ${state.team1Name}`;
+        label.className = 'font-display font-black text-sm sm:text-lg text-blue-400';
+      } else {
+        label.textContent = `${state.team2Name} +${state.ropePosition} ➡`;
+        label.className = 'font-display font-black text-sm sm:text-lg text-rose-400';
+      }
+
+      // Update SVG Movable Rig Position
+      // SVG viewBox width is 1000. Center is 500. Maximum shift ~ 180px
+      const svgOffset = normPos * 180;
+      const rig = document.getElementById('movableRig');
+      rig.setAttribute('transform', `translate(${svgOffset}, 0)`);
+    }
+
+    function createDustParticle(side) {
+      const container = document.getElementById('dustLayer');
+      if (!container) return;
+      const dust = document.createElement('div');
+      dust.className = 'dust-effect text-xl';
+      dust.textContent = '💨';
+      // Left side ~ 25%-35%, Right side ~ 65%-75%
+      const baseLeft = side === 'left' ? 26 + Math.random() * 12 : 62 + Math.random() * 12;
+      dust.style.left = `${baseLeft}%`;
+      dust.style.bottom = `${15 + Math.random() * 15}%`;
+      container.appendChild(dust);
+      setTimeout(() => dust.remove(), 600);
+    }
+
+    function triggerActionAlert(team, text) {
+      if (team === 1) {
+        const el = document.getElementById('actionAlertLeft');
+        const txt = document.getElementById('actionTextLeft');
+        txt.textContent = text;
+        el.setAttribute('opacity', '1');
+        setTimeout(() => el.setAttribute('opacity', '0'), 700);
+      } else {
+        const el = document.getElementById('actionAlertRight');
+        const txt = document.getElementById('actionTextRight');
+        txt.textContent = text;
+        el.setAttribute('opacity', '1');
+        setTimeout(() => el.setAttribute('opacity', '0'), 700);
+      }
+    }
+
+    function displayProblem(team) {
+      const prob = generateProblem(state.selectedTables);
+      if (team === 1) {
+        state.team1.currentProblem = prob;
+        document.getElementById('team1ProblemText').textContent = prob.text;
+        prob.options.forEach((val, idx) => {
+          const btn = document.getElementById(`t1_opt_${idx}`);
+          btn.querySelector('.opt-value').textContent = val;
+          btn.classList.remove('bg-emerald-600/50', 'border-emerald-400', 'bg-rose-600/50', 'border-rose-400', 'btn-pop', 'btn-shake');
+        });
+      } else {
+        state.team2.currentProblem = prob;
+        document.getElementById('team2ProblemText').textContent = prob.text;
+        prob.options.forEach((val, idx) => {
+          const btn = document.getElementById(`t2_opt_${idx}`);
+          btn.querySelector('.opt-value').textContent = val;
+          btn.classList.remove('bg-emerald-600/50', 'border-emerald-400', 'bg-rose-600/50', 'border-rose-400', 'btn-pop', 'btn-shake');
+        });
+
+        // If playing against AI, schedule AI bot answer
+        if (state.gameMode.startsWith('ai') && !state.isGameOver) {
+          scheduleAiAnswer();
+        }
+      }
+    }
+
+    /* =========================================================
+       AI BOT LOGIC
+       ========================================================= */
+    function scheduleAiAnswer() {
+      if (state.aiTimer) clearTimeout(state.aiTimer);
+      if (state.isGameOver || state.team2.isLocked) return;
+
+      const isHard = state.gameMode === 'ai_hard';
+      // Response delay: easy is 2.2 - 4.5 sec; hard is 1.2 - 2.6 sec
+      const delay = isHard 
+        ? Math.floor(Math.random() * 1400) + 1200 
+        : Math.floor(Math.random() * 2200) + 2200;
+
+      // Accuracy probability: easy ~70%, hard ~90%
+      const probAcc = isHard ? 0.90 : 0.72;
+
+      state.aiTimer = setTimeout(() => {
+        if (state.isGameOver || state.team2.isLocked) return;
+        const prob = state.team2.currentProblem;
+        if (!prob) return;
+
+        let chosenIndex;
+        if (Math.random() < probAcc) {
+          chosenIndex = prob.correctIndex;
+        } else {
+          // Pick a wrong option
+          const wrongs = [0, 1, 2, 3].filter(i => i !== prob.correctIndex);
+          chosenIndex = wrongs[Math.floor(Math.random() * wrongs.length)];
+        }
+
+        handleAnswer(2, chosenIndex);
+      }, delay);
+    }
+
+    /* =========================================================
+       CORE ANSWER HANDLER
+       ========================================================= */
+    function handleAnswer(team, chosenIndex) {
+      if (state.isGameOver) return;
+      sound.init();
+
+      const teamData = team === 1 ? state.team1 : state.team2;
+      if (teamData.isLocked) return; // In error penalty cooldown
+
+      const prob = teamData.currentProblem;
+      if (!prob) return;
+
+      const isCorrect = chosenIndex === prob.correctIndex;
+      const targetBtn = document.getElementById(team === 1 ? `t1_opt_${chosenIndex}` : `t2_opt_${chosenIndex}`);
+
+      if (isCorrect) {
+        // ========== CORRECT ANSWER ==========
+        sound.playCorrect();
+        sound.playPull();
+
+        teamData.score++;
+        teamData.streak++;
+
+        // Update streaks and score display
+        if (team === 1) {
+          document.getElementById('team1Score').textContent = teamData.score;
+          document.getElementById('team1Streak').textContent = `${teamData.streak} 🔥`;
+          document.getElementById('team1Feedback').textContent = '✨ Отлично! Верно!';
+          document.getElementById('team1Feedback').className = 'h-6 mt-2 flex items-center justify-center text-xs sm:text-sm font-bold text-emerald-400';
+          triggerActionAlert(1, '+1 ТЯГА! 💪');
+          createDustParticle('left');
+          state.ropePosition--; // Pulls towards left (Team 1)
+        } else {
+          document.getElementById('team2Score').textContent = teamData.score;
+          document.getElementById('team2Streak').textContent = `${teamData.streak} 🔥`;
+          document.getElementById('team2Feedback').textContent = '✨ Отлично! Верно!';
+          document.getElementById('team2Feedback').className = 'h-6 mt-2 flex items-center justify-center text-xs sm:text-sm font-bold text-emerald-400';
+          triggerActionAlert(2, '+1 ТЯГА! 💪');
+          createDustParticle('right');
+          state.ropePosition++; // Pulls towards right (Team 2)
+        }
+
+        if (targetBtn) {
+          targetBtn.classList.add('bg-emerald-600/50', 'border-emerald-400', 'btn-pop');
+        }
+
+        updateRopeVisual();
+        checkWinCondition();
+
+        if (!state.isGameOver) {
+          setTimeout(() => {
+            displayProblem(team);
+          }, 350);
+        }
+
+      } else {
+        // ========== WRONG ANSWER ==========
+        sound.playWrong();
+        teamData.streak = 0;
+        teamData.mistakes++;
+
+        const teamName = team === 1 ? state.team1Name : state.team2Name;
+        // Record mistake for review
+        state.roundMistakes.push({
+          team: teamName,
+          problem: `${prob.factorA} × ${prob.factorB}`,
+          userAnswer: prob.options[chosenIndex],
+          correctAnswer: prob.correctVal
+        });
+
+        if (team === 1) {
+          document.getElementById('team1Streak').textContent = '0 🔥';
+          document.getElementById('team1Feedback').textContent = `❌ Ошибка! Ответ: ${prob.correctVal}`;
+          document.getElementById('team1Feedback').className = 'h-6 mt-2 flex items-center justify-center text-xs sm:text-sm font-bold text-rose-400';
+        } else {
+          document.getElementById('team2Streak').textContent = '0 🔥';
+          document.getElementById('team2Feedback').textContent = `❌ Ошибка! Ответ: ${prob.correctVal}`;
+          document.getElementById('team2Feedback').className = 'h-6 mt-2 flex items-center justify-center text-xs sm:text-sm font-bold text-rose-400';
+        }
+
+        if (targetBtn) {
+          targetBtn.classList.add('bg-rose-600/50', 'border-rose-400', 'btn-shake');
+        }
+
+        // Apply Penalty Rule
+        if (state.penaltyRule === 'giveAdvantage') {
+          // Slippage: Error pulls rope to opponent!
+          if (team === 1) {
+            state.ropePosition++; // slips to right
+            triggerActionAlert(2, 'ПЕРЕВЕС! ⚡');
+            createDustParticle('right');
+          } else {
+            state.ropePosition--; // slips to left
+            triggerActionAlert(1, 'ПЕРЕВЕС! ⚡');
+            createDustParticle('left');
+          }
+          updateRopeVisual();
+          checkWinCondition();
+        }
+
+        // Lock team for 1.4 seconds to show explanation
+        applyCooldown(team, `${prob.factorA} × ${prob.factorB} = ${prob.correctVal}`);
+      }
+    }
+
+    function applyCooldown(team, errorText) {
+      const teamData = team === 1 ? state.team1 : state.team2;
+      teamData.isLocked = true;
+
+      const overlay = document.getElementById(team === 1 ? 't1_cooldown' : 't2_cooldown');
+      const expl = document.getElementById(team === 1 ? 't1_errorExpl' : 't2_errorExpl');
+      const bar = document.getElementById(team === 1 ? 't1_cdBar' : 't2_cdBar');
+
+      expl.textContent = `Правильно: ${errorText}`;
+      overlay.classList.remove('hidden');
+      bar.style.width = '100%';
+
+      setTimeout(() => {
+        bar.style.width = '0%';
+      }, 50);
+
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        teamData.isLocked = false;
+        if (!state.isGameOver) {
+          displayProblem(team);
+        }
+      }, 1400);
+    }
+
+    /* =========================================================
+       VICTORY / GAME OVER CONDITION
+       ========================================================= */
+    function checkWinCondition() {
+      const max = state.targetSteps;
+      if (Math.abs(state.ropePosition) >= max) {
+        state.isGameOver = true;
+        if (state.aiTimer) clearTimeout(state.aiTimer);
+
+        sound.playWin();
+        launchConfetti();
+
+        const winnerTeam = state.ropePosition <= -max ? 1 : 2;
+        const winnerName = winnerTeam === 1 ? state.team1Name : state.team2Name;
+        const winnerColor = winnerTeam === 1 ? 'text-blue-400' : 'text-rose-400';
+
+        document.getElementById('winnerTitle').innerHTML = `Победили <span class="${winnerColor}">${winnerName}</span>! 🎉`;
+        document.getElementById('winnerSubtitle').textContent = `Канат успешно перетянут на ${max} шагов! Превосходный результат в таблице умножения!`;
+
+        // Update Stats in victory modal
+        document.getElementById('winT1Name').textContent = state.team1Name;
+        document.getElementById('winT1Correct').textContent = state.team1.score;
+        document.getElementById('winT1Mistakes').textContent = state.team1.mistakes;
+        const total1 = state.team1.score + state.team1.mistakes;
+        const acc1 = total1 > 0 ? Math.round((state.team1.score / total1) * 100) : 100;
+        document.getElementById('winT1Acc').textContent = `${acc1}%`;
+
+        document.getElementById('winT2Name').textContent = state.team2Name;
+        document.getElementById('winT2Correct').textContent = state.team2.score;
+        document.getElementById('winT2Mistakes').textContent = state.team2.mistakes;
+        const total2 = state.team2.score + state.team2.mistakes;
+        const acc2 = total2 > 0 ? Math.round((state.team2.score / total2) * 100) : 100;
+        document.getElementById('winT2Acc').textContent = `${acc2}%`;
+
+        // Populate pedagogical review
+        const mistakesList = document.getElementById('mistakesList');
+        mistakesList.innerHTML = '';
+        if (state.roundMistakes.length === 0) {
+          mistakesList.innerHTML = `<div class="p-2 text-center text-emerald-400 font-bold">🌟 Потрясающе! Ни единой ошибки за весь матч! Вы настоящие мастера таблицы умножения!</div>`;
+        } else {
+          state.roundMistakes.forEach(m => {
+            const item = document.createElement('div');
+            item.className = 'flex items-center justify-between p-2 rounded-xl bg-slate-900 border border-slate-800';
+            item.innerHTML = `
+              <span><b>${m.team}</b>: пример <span class="font-mono text-amber-300 font-bold">${m.problem}</span></span>
+              <span class="text-slate-400">Введено: <s class="text-rose-400">${m.userAnswer}</s> ➜ Ответ: <b class="text-emerald-400 font-bold">${m.correctAnswer}</b></span>
+            `;
+            mistakesList.appendChild(item);
+          });
+        }
+
+        setTimeout(() => {
+          document.getElementById('victoryModal').classList.remove('hidden');
+        }, 600);
+      }
+    }
+
+    /* =========================================================
+       KEYBOARD SHORTCUTS CONTROLLER
+       Supports English + Russian layouts via event.code
+       ========================================================= */
+    window.addEventListener('keydown', (e) => {
+      // Ignore keystrokes when typing inside input elements or when modal is open
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (!document.getElementById('settingsModal').classList.contains('hidden')) return;
+      if (!document.getElementById('cheatsheetModal').classList.contains('hidden')) return;
+      if (!document.getElementById('victoryModal').classList.contains('hidden')) return;
+      if (state.isGameOver) return;
+
+      const code = e.code;
+
+      // Team 1 Controls: [KeyA, KeyS, KeyD, KeyF] OR [Digit1, Digit2, Digit3, Digit4]
+      if (code === 'KeyA' || code === 'Digit1') { e.preventDefault(); handleAnswer(1, 0); }
+      else if (code === 'KeyS' || code === 'Digit2') { e.preventDefault(); handleAnswer(1, 1); }
+      else if (code === 'KeyD' || code === 'Digit3') { e.preventDefault(); handleAnswer(1, 2); }
+      else if (code === 'KeyF' || code === 'Digit4') { e.preventDefault(); handleAnswer(1, 3); }
+
+      // Team 2 Controls (only if human player, not AI):
+      if (state.gameMode === 'pvp') {
+        if (code === 'KeyJ' || code === 'Numpad7' || code === 'Digit7' || code === 'ArrowUp') { e.preventDefault(); handleAnswer(2, 0); }
+        else if (code === 'KeyK' || code === 'Numpad8' || code === 'Digit8' || code === 'ArrowLeft') { e.preventDefault(); handleAnswer(2, 1); }
+        else if (code === 'KeyL' || code === 'Numpad9' || code === 'Digit9' || code === 'ArrowRight') { e.preventDefault(); handleAnswer(2, 2); }
+        else if (code === 'Semicolon' || code === 'Quote' || code === 'Numpad0' || code === 'Digit0' || code === 'ArrowDown') { e.preventDefault(); handleAnswer(2, 3); }
+      }
+    });
+
+    // Unlock Web Audio API on first user gesture
+    window.addEventListener('pointerdown', () => sound.init(), { once: true });
+    window.addEventListener('keydown', () => sound.init(), { once: true });
+
+    /* =========================================================
+       GAME RESTART / INITIALIZATION
+       ========================================================= */
+    function restartGame() {
+      if (state.aiTimer) clearTimeout(state.aiTimer);
+      state.ropePosition = 0;
+      state.isGameOver = false;
+      state.roundMistakes = [];
+
+      state.team1.score = 0;
+      state.team1.streak = 0;
+      state.team1.mistakes = 0;
+      state.team1.isLocked = false;
+
+      state.team2.score = 0;
+      state.team2.streak = 0;
+      state.team2.mistakes = 0;
+      state.team2.isLocked = false;
+
+      document.getElementById('team1Score').textContent = '0';
+      document.getElementById('team1Streak').textContent = '0 🔥';
+      document.getElementById('team1Feedback').textContent = 'Нажмите правильный ответ!';
+      document.getElementById('team1Feedback').className = 'h-6 mt-2 flex items-center justify-center text-xs sm:text-sm font-bold text-slate-400';
+
+      document.getElementById('team2Score').textContent = '0';
+      document.getElementById('team2Streak').textContent = '0 🔥';
+      document.getElementById('team2Feedback').textContent = 'Нажмите правильный ответ!';
+      document.getElementById('team2Feedback').className = 'h-6 mt-2 flex items-center justify-center text-xs sm:text-sm font-bold text-slate-400';
+
+      document.getElementById('victoryModal').classList.add('hidden');
+      document.getElementById('t1_cooldown').classList.add('hidden');
+      document.getElementById('t2_cooldown').classList.add('hidden');
+
+      renderScaleTicks();
+      updateRopeVisual();
+      sound.playWhistle();
+
+      displayProblem(1);
+      displayProblem(2);
+    }
+
+    /* =========================================================
+       SETTINGS & MODAL CONTROLLERS
+       ========================================================= */
+    function openSettings() {
+      document.getElementById('victoryModal').classList.add('hidden');
+      document.getElementById('settingsModal').classList.remove('hidden');
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsModal').classList.add('hidden');
+    }
+
+    function openCheatSheet() {
+      populateCheatSheet();
+      document.getElementById('cheatsheetModal').classList.remove('hidden');
+    }
+
+    function closeCheatSheet() {
+      document.getElementById('cheatsheetModal').classList.add('hidden');
+    }
+
+    function setGameMode(mode) {
+      state.gameMode = mode;
+      ['pvp', 'ai_easy', 'ai_hard'].forEach(m => {
+        const btn = document.getElementById(`modeBtn_${m}`);
+        if (m === mode) {
+          btn.className = 'mode-select-btn p-3 rounded-2xl border-2 text-center transition-all cursor-pointer bg-amber-500/10 border-amber-500 text-amber-300 font-bold text-xs sm:text-sm shadow-md';
+        } else {
+          btn.className = 'mode-select-btn p-3 rounded-2xl border-2 text-center transition-all cursor-pointer bg-slate-800/80 border-slate-700 text-slate-300 hover:border-slate-500 font-bold text-xs sm:text-sm';
+        }
+      });
+
+      // Update right team labels accordingly
+      if (mode === 'pvp') {
+        document.getElementById('currentModeDisplay').textContent = '2 Игрока';
+        document.getElementById('t2NameInput').value = 'Красные Львы';
+        document.getElementById('t2_badgeLabel').textContent = 'Красная команда (Игрок 2)';
+        document.getElementById('t2_hotkeyTip').classList.remove('hidden');
+      } else if (mode === 'ai_easy') {
+        document.getElementById('currentModeDisplay').textContent = 'Против Робота (Легкий)';
+        document.getElementById('t2NameInput').value = 'Бот-Новичок 🤖';
+        document.getElementById('t2_badgeLabel').textContent = 'Компьютер (Бот)';
+        document.getElementById('t2_hotkeyTip').classList.add('hidden');
+      } else {
+        document.getElementById('currentModeDisplay').textContent = 'Против Робота (Профи)';
+        document.getElementById('t2NameInput').value = 'Робот-Профи ⚡';
+        document.getElementById('t2_badgeLabel').textContent = 'Компьютер (Профи)';
+        document.getElementById('t2_hotkeyTip').classList.add('hidden');
+      }
+    }
+
+    function updateTableSelection() {
+      const selected = [];
+      [5, 6, 7, 8, 9].forEach(num => {
+        if (document.getElementById(`chk_table_${num}`).checked) {
+          selected.push(num);
+        }
+      });
+
+      const warning = document.getElementById('tableWarning');
+      if (selected.length === 0) {
+        warning.classList.remove('hidden');
+        document.getElementById('chk_table_5').checked = true;
+        selected.push(5);
+      } else {
+        warning.classList.add('hidden');
+      }
+
+      state.selectedTables = selected;
+      document.getElementById('activeTablesTag').textContent = selected.join(', ');
+    }
+
+    function changeWinSteps(val) {
+      state.targetSteps = parseInt(val, 10);
+      document.getElementById('winStepsVal').textContent = val;
+      document.getElementById('targetStepsDisplay').textContent = `${val} шагов`;
+    }
+
+    function setPenaltyRule(rule) {
+      state.penaltyRule = rule;
+    }
+
+    function saveAndRestart() {
+      // Read names
+      const t1Input = document.getElementById('t1NameInput').value.trim();
+      const t2Input = document.getElementById('t2NameInput').value.trim();
+      if (t1Input) state.team1Name = t1Input;
+      if (t2Input) state.team2Name = t2Input;
+
+      document.getElementById('team1NameDisplay').textContent = state.team1Name;
+      document.getElementById('team2NameDisplay').textContent = state.team2Name;
+
+      closeSettings();
+      restartGame();
+    }
+
+    /* =========================================================
+       POPULATE CHEATSHEET DATA
+       ========================================================= */
+    function populateCheatSheet() {
+      [5, 6, 7, 8, 9].forEach(n => {
+        const grid = document.getElementById(`table${n}Grid`);
+        if (!grid) return;
+        grid.innerHTML = '';
+        for (let i = 1; i <= 10; i++) {
+          const row = document.createElement('div');
+          row.className = 'flex justify-between py-0.5 border-b border-slate-800/60 last:border-0 hover:text-amber-300 transition-colors';
+          row.innerHTML = `<span>${n} × ${i}</span> <b>= ${n * i}</b>`;
+          grid.appendChild(row);
+        }
+      });
+    }
+
+    /* =========================================================
+       ATTACH EVENT LISTENERS
+       ========================================================= */
+    document.getElementById('soundToggleBtn').addEventListener('click', () => {
+      const isMuted = sound.toggleMute();
+      document.getElementById('soundIcon').textContent = isMuted ? '🔇' : '🔊';
+    });
+
+    document.getElementById('settingsBtn').addEventListener('click', openSettings);
+    document.getElementById('cheatsheetBtn').addEventListener('click', openCheatSheet);
+    document.getElementById('restartBtn').addEventListener('click', restartGame);
+
+    // Initial setup on load
+    window.addEventListener('DOMContentLoaded', () => {
+      renderScaleTicks();
+      updateRopeVisual();
+      populateCheatSheet();
+      displayProblem(1);
+      displayProblem(2);
+    });
+  </script>
+
+</body>
+</html>
